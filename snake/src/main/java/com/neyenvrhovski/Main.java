@@ -53,91 +53,124 @@ public class Main {
         mainFrame.add(mainPanel);
     }
 
-    private static void onFrameChange(){
+    private static void onFrameChange() {
         snake.setCurrentDirection(snake.getNextDirection());
         snakeBodyTiles = snake.getBodyTiles();
-        Boolean isFoodEaten = false;
-        Boolean isGameOver;
-        boolean hasToPlaySound = false;
+
+        boolean isFoodEaten = moveSnake();
+        boolean isGameOver = Snake.isGameOver(snakeBodyTiles);
+
+        if (isGameOver) {
+            handleGameOver();
+            return;
+        }
+
+        updateTiles(isFoodEaten);
+
+        if (isFoodEaten) {
+            SoundPlayer.playSound("pickup.wav");
+        }
+
+        mainPanel.setTiles(tiles);
+        mainPanel.repaint();
+    }
+
+    private static boolean moveSnake() {
         Tile prevTile = new Tile(0, 0, 0, null);
         Tile currentTile;
+        boolean isFoodEaten = false;
+
         for (int i = 0; i < snakeBodyTiles.size(); i++) {
-            currentTile = new Tile(snakeBodyTiles.get(i).getX(), snakeBodyTiles.get(i).getY(), snakeBodyTiles.get(i).getTileNumber(), snakeBodyTiles.get(i).getColor());
-            if (i == 0){
-                switch (snake.getCurrentDirection()) {
-                    case UP -> {
-                        if (snakeBodyTiles.get(i).getTileNumber() < 24){
-                            snakeBodyTiles.get(i).setTileNumber(snakeBodyTiles.get(i).getTileNumber() + 408);
-                            snakeBodyTiles.get(i).setY(850);
-                        } else {
-                            snakeBodyTiles.get(i).setTileNumber(snakeBodyTiles.get(i).getTileNumber() - 24);
-                            snakeBodyTiles.get(i).setY(snakeBodyTiles.get(i).getY() - 50);
-                        }
-                    }
-                    case DOWN -> {
-                        if (snakeBodyTiles.get(i).getTileNumber() > 407){
-                            snakeBodyTiles.get(i).setTileNumber(snakeBodyTiles.get(i).getTileNumber() - 408);
-                            snakeBodyTiles.get(i).setY(0);
-                        } else {
-                            snakeBodyTiles.get(i).setTileNumber(snakeBodyTiles.get(i).getTileNumber() + 24);
-                            snakeBodyTiles.get(i).setY(snakeBodyTiles.get(i).getY() + 50);
-                        }
-                    }
-                    case RIGHT -> {
-                        if (snakeBodyTiles.get(i).getTileNumber() % 24 == 23){
-                            snakeBodyTiles.get(i).setTileNumber(snakeBodyTiles.get(i).getTileNumber() - 23);
-                            snakeBodyTiles.get(i).setX(0);
-                        } else {
-                            snakeBodyTiles.get(i).setTileNumber(snakeBodyTiles.get(i).getTileNumber() + 1);
-                            snakeBodyTiles.get(i).setX(snakeBodyTiles.get(i).getX() + 50);
-                        }
-                    }
-                    case LEFT -> {
-                        if(snakeBodyTiles.get(i).getTileNumber() % 24 == 0){
-                            snakeBodyTiles.get(i).setTileNumber(snakeBodyTiles.get(i).getTileNumber() + 23);
-                            snakeBodyTiles.get(i).setX(1150);
-                        } else {
-                            snakeBodyTiles.get(i).setTileNumber(snakeBodyTiles.get(i).getTileNumber() - 1);
-                            snakeBodyTiles.get(i).setX(snakeBodyTiles.get(i).getX() - 50);
-                        }
-                    }
-                    default -> throw new AssertionError();
-                }
+            currentTile = new Tile(
+                snakeBodyTiles.get(i).getX(),
+                snakeBodyTiles.get(i).getY(),
+                snakeBodyTiles.get(i).getTileNumber(),
+                snakeBodyTiles.get(i).getColor()
+            );
+
+            if (i == 0) {
+                moveHead(snakeBodyTiles.get(i));
                 isFoodEaten = Food.isFoodEaten(snakeBodyTiles, foodTile);
-                isGameOver = Snake.isGameOver(snakeBodyTiles);
-                if (isGameOver){
-                    timer.stop();
-                    int option = JOptionPane.showConfirmDialog(mainFrame, "<html>You lost!<br>Press OK to restart or Cancel to exit.</html>", "Game Over", JOptionPane.ERROR_MESSAGE);
-                    if (option == JOptionPane.OK_OPTION){
-                        restart();
-                    } else {
-                        System.exit(0);
-                    }
-                }
             } else {
                 snakeBodyTiles.get(i).setTileNumber(prevTile.getTileNumber());
             }
 
-            tiles[snakeBodyTiles.get(i).getTileNumber()].setColor(Color.WHITE);
-            tiles[foodTile.getTileNumber()].setColor(Color.WHITE);
-            if (i == snakeBodyTiles.size() - 1) {
-                if (isFoodEaten){
-                    snakeBodyTiles.add(new Tile(currentTile.getX(), currentTile.getY(), currentTile.getTileNumber(), Color.WHITE));
-                    foodTile = Food.generateFood(snakeBodyTiles);
-                    isFoodEaten = false;
-                    hasToPlaySound = true;
-                    tiles[currentTile.getTileNumber()].setColor(Color.WHITE);
-                } else {
-                    tiles[currentTile.getTileNumber()].setColor(Color.BLACK);
-                }
-            }
             prevTile = currentTile;
         }
-        if (hasToPlaySound){
-            SoundPlayer.playSound("pickup.wav");
+        return isFoodEaten;
+    }
+
+    private static void moveHead(Tile head) {
+        switch (snake.getCurrentDirection()) {
+            case UP -> {
+                if (head.getTileNumber() < 24) {
+                    head.setTileNumber(head.getTileNumber() + 408);
+                    head.setY(850);
+                } else {
+                    head.setTileNumber(head.getTileNumber() - 24);
+                    head.setY(head.getY() - 50);
+                }
+            }
+            case DOWN -> {
+                if (head.getTileNumber() > 407) {
+                    head.setTileNumber(head.getTileNumber() - 408);
+                    head.setY(0);
+                } else {
+                    head.setTileNumber(head.getTileNumber() + 24);
+                    head.setY(head.getY() + 50);
+                }
+            }
+            case RIGHT -> {
+                if (head.getTileNumber() % 24 == 23) {
+                    head.setTileNumber(head.getTileNumber() - 23);
+                    head.setX(0);
+                } else {
+                    head.setTileNumber(head.getTileNumber() + 1);
+                    head.setX(head.getX() + 50);
+                }
+            }
+            case LEFT -> {
+                if (head.getTileNumber() % 24 == 0) {
+                    head.setTileNumber(head.getTileNumber() + 23);
+                    head.setX(1150);
+                } else {
+                    head.setTileNumber(head.getTileNumber() - 1);
+                    head.setX(head.getX() - 50);
+                }
+            }
+            default -> throw new AssertionError();
         }
-        mainPanel.setTiles(tiles);
-        mainPanel.repaint();
+    }
+
+    private static void updateTiles(boolean isFoodEaten) {
+        for (Tile tile : tiles) {
+            tile.setColor(Color.BLACK);
+        }
+        for (Tile bodyTile : snakeBodyTiles) {
+            tiles[bodyTile.getTileNumber()].setColor(Color.WHITE);
+        }
+        tiles[foodTile.getTileNumber()].setColor(Color.WHITE);
+
+        if (isFoodEaten) {
+            Tile last = snakeBodyTiles.get(snakeBodyTiles.size() - 1);
+            snakeBodyTiles.add(new Tile(last.getX(), last.getY(), last.getTileNumber(), Color.WHITE));
+            foodTile = Food.generateFood(snakeBodyTiles);
+        }
+    }
+
+    private static void handleGameOver() {
+        timer.stop();
+        int option = JOptionPane.showConfirmDialog(
+            mainFrame,
+            "<html>You lost!<br>Press OK to restart or Cancel to exit.</html>",
+            "Game Over",
+            JOptionPane.ERROR_MESSAGE
+        );
+        if (option == JOptionPane.OK_OPTION) {
+            restart();
+        } else {
+            System.exit(0);
+        }
     }
 
     private static void restart(){
