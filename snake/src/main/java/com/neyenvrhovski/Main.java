@@ -8,7 +8,6 @@ import javax.swing.JOptionPane;
 import javax.swing.Timer;
 
 import com.neyenvrhovski.core.FrameTimer;
-import com.neyenvrhovski.core.KeyBinder;
 import com.neyenvrhovski.gameobjects.Food;
 import com.neyenvrhovski.gameobjects.Snake;
 import com.neyenvrhovski.gameobjects.Tile;
@@ -41,7 +40,7 @@ public class Main {
     }
 
     private static void createPanel(){
-        mainFrame = new MainFrame();
+        mainFrame = new MainFrame(snake);
 
         tiles = new Tile[432];
         for (int iY = 0; iY < 18; iY++) {
@@ -51,7 +50,6 @@ public class Main {
         }
 
         mainPanel = new MainPanel(tiles);
-        mainFrame.addKeyListener(new KeyBinder(snake));
         mainFrame.add(mainPanel);
     }
 
