@@ -6,7 +6,7 @@ import java.awt.event.KeyEvent;
 import com.neyenvrhovski.gameobjects.Snake;
 import com.neyenvrhovski.gameobjects.Snake.Direction;
 
-public class KeyBinder extends KeyAdapter {
+public class KeyBinder extends KeyAdapter{
 
     private final Snake snake;
 
@@ -41,5 +41,4 @@ public class KeyBinder extends KeyAdapter {
             default -> {}
         }
     }
-
 }
